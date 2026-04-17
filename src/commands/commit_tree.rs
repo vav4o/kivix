@@ -1,5 +1,5 @@
-
 use crate::tools::hash_object::hash_object;
+use chrono::Local;
 
 pub fn run(write: bool, tree_hash: String, parent_hash: Option<String>, message: String) {
     println!("Committing tree...");
@@ -7,10 +7,15 @@ pub fn run(write: bool, tree_hash: String, parent_hash: Option<String>, message:
     let hash = hash_commit(tree_hash, parent_hash.unwrap_or_else(|| "".into()), message, write);
     println!("Commit hash: {}", hash);
 }
-//TODO: Time and timezone should be generated dynamically
+
 pub fn hash_commit(tree_sha: String, parent: String, message: String, write: bool) -> String {
     let parent: String = format!("parent {}", parent);
-    let author: &str = "author My Name time +0000";
+
+    let now = Local::now();
+    let timestamp = format!("{}", now.format("%Y-%m-%d %H:%M:%S"));
+    let timezone = now.format("%z");
+
+    let author: String = format!("author My Name {} {}", timestamp, timezone);
 
     let commit = format!(
         "tree {}\n{}\n{}\n\n{}\n",
