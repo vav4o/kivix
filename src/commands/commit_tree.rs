@@ -7,7 +7,7 @@ pub fn run(write: bool, tree_hash: String, parent_hash: Option<String>, message:
     let hash = hash_commit(tree_hash, parent_hash.unwrap_or_else(|| "".into()), message, write);
     println!("Commit hash: {}", hash);
 }
-
+//TODO: Time and timezone should be generated dynamically
 pub fn hash_commit(tree_sha: String, parent: String, message: String, write: bool) -> String {
     let parent: String = format!("parent {}", parent);
     let author: &str = "author My Name time +0000";
