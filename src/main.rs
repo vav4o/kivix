@@ -8,6 +8,7 @@ mod commands {
     pub mod write_tree;
     pub mod ls_tree;
     pub mod commit_tree;
+    pub mod diff;
 }
 
 mod tools {
@@ -58,6 +59,7 @@ enum Command {
         #[clap(short = 'm')]
         message: String,
     },
+    Diff{},
 }
 
 fn main() { 
@@ -80,6 +82,9 @@ fn main() {
         }
         Command::CommitTree { write, tree_hash, parent_hash, message } => {
             commands::commit_tree::run(write, tree_hash, parent_hash, message);
+        }
+        Command::Diff{} => {
+            commands::diff::run();
         }
     }
 
