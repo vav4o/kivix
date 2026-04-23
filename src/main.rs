@@ -8,6 +8,8 @@ mod commands {
     pub mod write_tree;
     pub mod ls_tree;
     pub mod commit_tree;
+    pub mod inner_diff;
+    pub mod stage;
     pub mod diff;
 }
 
@@ -59,10 +61,17 @@ enum Command {
         #[clap(short = 'm')]
         message: String,
     },
-    Diff{
+    Diff {
         file1: String,
         file2: String,
     },
+    Stage {
+        file: String,
+    },
+    InnerDiff {
+        file1: String,
+        file2: String,
+    }
 }
 
 fn main() { 
@@ -88,6 +97,12 @@ fn main() {
         }
         Command::Diff{file1, file2} => {
             commands::diff::run(file1, file2);
+        }
+        Command::Stage { file } => {
+            commands::stage::run(file);
+        }
+        Command::InnerDiff { file1, file2 } => {
+            commands::inner_diff::run(file1, file2);
         }
     }
 
