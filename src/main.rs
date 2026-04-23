@@ -59,7 +59,10 @@ enum Command {
         #[clap(short = 'm')]
         message: String,
     },
-    Diff{},
+    Diff{
+        file1: String,
+        file2: String,
+    },
 }
 
 fn main() { 
@@ -83,8 +86,8 @@ fn main() {
         Command::CommitTree { write, tree_hash, parent_hash, message } => {
             commands::commit_tree::run(write, tree_hash, parent_hash, message);
         }
-        Command::Diff{} => {
-            commands::diff::run();
+        Command::Diff{file1, file2} => {
+            commands::diff::run(file1, file2);
         }
     }
 
