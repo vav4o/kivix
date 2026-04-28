@@ -36,7 +36,7 @@ pub fn hash_tree(path: &str, write: bool) -> String {
         let hash = if meta.is_dir() {
             hash_tree(entry.path().to_str().unwrap(), write)
         } else {
-            hash_object::hash_file(entry.path().to_str().unwrap(), write)
+            hash_object::hash_file(entry.path().to_str().unwrap(), write, false)
         };
         if hash.is_empty() {
             continue;
@@ -52,7 +52,7 @@ pub fn hash_tree(path: &str, write: bool) -> String {
     if tree.is_empty() {
         return "".to_string();
     } else {
-        return hash_object(tree, "tree", write);
+        return hash_object(tree, "tree", write, false);
     }
 }
 

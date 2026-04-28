@@ -24,5 +24,5 @@ pub fn hash_commit(tree_sha: String, parent: String, message: String, write: boo
     .as_bytes()
     .to_vec();
 
-    hash_object(commit, "commit", write)
+    hash_object(commit, "commit", write, false)
 }

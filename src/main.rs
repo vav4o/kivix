@@ -11,6 +11,8 @@ mod commands {
     pub mod inner_diff;
     pub mod stage;
     pub mod diff;
+    pub mod commit;
+    pub mod add;
 }
 
 mod tools {
@@ -71,6 +73,13 @@ enum Command {
     InnerDiff {
         file1: String,
         file2: String,
+    },
+    Commit {
+        #[clap(short = 'm')]
+        message: String,
+    },
+    Add {
+        file: String,
     }
 }
 
@@ -103,6 +112,12 @@ fn main() {
         }
         Command::InnerDiff { file1, file2 } => {
             commands::inner_diff::run(file1, file2);
+        }
+        Command::Commit { message } => {
+            commands::commit::run(message);
+        }
+        Command::Add { file } => {
+            commands::add::run(file);
         }
     }
 
