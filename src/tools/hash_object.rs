@@ -24,9 +24,7 @@ pub fn hash_object(data: Vec<u8>, object_type: &str, write: bool, staging: bool)
         let file_path: String;
 
         if staging {
-            std::fs::create_dir_all(".kiv/staging").unwrap();
-            std::fs::write(format!(".kiv/staging/{}", hexadecimal_hash), &compressed_data).unwrap();
-            file_path = format!(".kiv/staging/{}", hexadecimal_hash);
+            file_path = format!(".kiv/staging/{}/{}", &hexadecimal_hash[..2], &hexadecimal_hash[2..]);    
         } else {
             file_path = format!(".kiv/objects/{}/{}", &hexadecimal_hash[..2], &hexadecimal_hash[2..]);
         }
