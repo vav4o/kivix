@@ -12,7 +12,7 @@ use std::os::unix::fs::PermissionsExt;
 pub fn run(write: bool) {
     println!("Writing tree...");
 
-    let hash = hash_tree("./17", write);
+    let hash = hash_tree("./.kiv/staging", write);
     print!("Tree hash: {}", hash);
 }
 
