@@ -7,7 +7,7 @@ pub fn run(file1: String, file2: String) {
 
     let rendered = inner_diff(file1, file2);
 
-    let hash = hash_object::hash_object(rendered.clone(), "diff", true, false);
+    let hash = hash_object::hash_object(rendered.clone(), "diff", true);
 
     println!("Diff:\n{}", String::from_utf8_lossy(&rendered));
     
