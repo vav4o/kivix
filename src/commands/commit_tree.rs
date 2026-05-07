@@ -1,11 +1,12 @@
 use crate::tools::hash_object::hash_object;
 use chrono::Local;
 
-pub fn run(write: bool, tree_hash: String, parent_hash: Option<String>, message: String) {
+pub fn run(write: bool, tree_hash: String, parent_hash: Option<String>, message: String) -> String{
     println!("Committing tree...");
 
     let hash = hash_commit(tree_hash, parent_hash.unwrap_or_else(|| "".into()), message, write);
     println!("Commit hash: {}", hash);
+    hash
 }
 
 pub fn hash_commit(tree_sha: String, parent: String, message: String, write: bool) -> String {

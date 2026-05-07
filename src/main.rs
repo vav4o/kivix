@@ -17,6 +17,7 @@ mod commands {
 
 mod tools {
     pub mod hash_object;
+    pub mod stage_to_tree;
 }
 
 /// A simple git-like version control system written in Rust.
@@ -108,7 +109,7 @@ fn main() {
             commands::diff::run(file1, file2);
         }
         Command::Stage { file } => {
-            commands::stage::run(file);
+            commands::stage::run();
         }
         Command::InnerDiff { file1, file2 } => {
             commands::inner_diff::run(file1, file2);
