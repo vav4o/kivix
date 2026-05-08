@@ -22,13 +22,13 @@ pub fn create_tree(file_path: String, write: bool) -> String {
             continue;
         }
 
-        let mut parts = line.splitn(2, char::is_whitespace);
+        let mut parts = line.splitn(3, "   ");
         let hash = match parts.next() {
             Some(value) if !value.is_empty() => value,
             _ => continue,
         };
         let path = match parts.next() {
-            Some(value) => value.trim_start(),
+            Some(value) => value.trim(),
             None => continue,
         };
 
