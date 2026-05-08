@@ -68,9 +68,7 @@ enum Command {
         file1: String,
         file2: String,
     },
-    Stage {
-        file: String,
-    },
+    Stage,
     InnerDiff {
         file1: String,
         file2: String,
@@ -108,7 +106,7 @@ fn main() {
         Command::Diff{file1, file2} => {
             commands::diff::run(file1, file2);
         }
-        Command::Stage { file } => {
+        Command::Stage => {
             commands::stage::run();
         }
         Command::InnerDiff { file1, file2 } => {
