@@ -27,7 +27,7 @@ pub fn run(file: String) {
     for line in existing.lines() {
         let parts: Vec<&str> = line.split("   ").collect();
         match parts.as_slice() {
-            [_status, old_hash, file_name, recorded_mtime, maybe_old_version_hash, maybe_original_mtime]
+            [_, old_hash, file_name, recorded_mtime, maybe_old_version_hash, maybe_original_mtime]
                 if normalize_path(file_name) == normalized_file => {
                 found = true;
                 if *recorded_mtime == current_mtime_str {

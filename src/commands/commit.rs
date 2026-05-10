@@ -51,12 +51,9 @@ fn sync_staging_old_hashes(staging_path: &str) {
 
         let parts: Vec<&str> = line.split("   ").collect();
         match parts.as_slice() {
-            // 5-field format: hash, path, mtime, old_hash, original_mtime
-            // After commit: keep only the first three fields.
             [_, file_hash, file_path, mtime, _, _] => {
                 new_lines.push(format!("O   {}   {}   {}", file_hash, file_path, mtime));
             }
-            // 3-field format: already in the desired committed form.
             [_, file_hash, file_path, mtime] => {
                 new_lines.push(format!("O   {}   {}   {}", file_hash, file_path, mtime));
             }

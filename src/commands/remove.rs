@@ -22,7 +22,7 @@ pub fn run(file: String) {
             [_status, _file_hash, file_name, _mtime, old_version_hash, original_mtime]
                 if normalize_path(file_name) == normalized_file => {
                     found = true;
-                    // Entry has original tracking; revert by replacing current hash with old hash and removing 4th/5th fields.
+
                     new_lines.push(format!(
                         "O   {}   {}   {}",
                         old_version_hash, file_name, original_mtime
@@ -33,7 +33,6 @@ pub fn run(file: String) {
                 if normalize_path(file_name) == normalized_file => {
                     found = true;
                     
-                    // Entry has no old version hash; delete it from staging.
                     println!("removed {} from staging", file);
                 }
             _ => new_lines.push(line.to_string()),
