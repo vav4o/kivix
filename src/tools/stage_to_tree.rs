@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+﻿use std::collections::BTreeMap;
 
 use crate::tools::hash_object;
 
@@ -22,7 +22,11 @@ pub fn create_tree(file_path: String, write: bool) -> String {
             continue;
         }
 
-        let mut parts = line.splitn(3, "   ");
+        let mut parts = line.splitn(4, "   ");
+        let _ = match parts.next() {
+            Some(value) if !value.is_empty() => value,
+            _ => continue,
+        };
         let hash = match parts.next() {
             Some(value) if !value.is_empty() => value,
             _ => continue,
@@ -50,7 +54,6 @@ pub fn create_tree(file_path: String, write: bool) -> String {
     }
 
     let tree_hash = build_tree_hash(&root, write).unwrap_or_default();
-    println!("{}", tree_hash);
     tree_hash
 }
 

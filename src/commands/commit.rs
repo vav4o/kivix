@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+﻿use std::io::{Read, Write};
 
 use crate::commands::commit_tree;
 use crate::tools::stage_to_tree;
@@ -12,15 +12,13 @@ pub fn run(message: String) {
         .to_string();
     let mut parent = std::fs::OpenOptions::new()
         .read(true)
-        .write(true)      
+        .write(true)
         .open(&branch)
         .expect("Could not open file");
 
     let parent_hash = if parent.metadata().expect("file metadata not found").len() == 0 {
-        println!("Empty");
         None
     } else {
-        println!("Wrong!");
         let mut contents = String::new();
         parent.read_to_string(&mut contents)
             .expect("Failed to read file");
@@ -28,15 +26,50 @@ pub fn run(message: String) {
         Some(contents.trim().to_string())
     };
 
-    
     let changes = stage_to_tree::create_tree("./.kiv/staging".to_string(), true);
-    //let changes = write_tree::hash_tree("./.kiv/staging", true);
-    
+
     let new_commit = commit_tree::run(true, changes, parent_hash, message);
 
     parent.set_len(0).expect("Failed to truncate file!");
     parent.write_all(new_commit.as_bytes()).expect("Failed to write in parent");
 
-    println!("New commit hash: {}", new_commit);
-    
+    sync_staging_old_hashes("./.kiv/staging");
+}
+
+fn sync_staging_old_hashes(staging_path: &str) {
+    let existing = std::fs::read_to_string(staging_path).unwrap_or_default();
+    if existing.trim().is_empty() {
+        return;
+    }
+
+    let mut new_lines: Vec<String> = Vec::new();
+
+    for line in existing.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+
+        let parts: Vec<&str> = line.split("   ").collect();
+        match parts.as_slice() {
+            // 5-field format: hash, path, mtime, old_hash, original_mtime
+            // After commit: keep only the first three fields.
+            [_, file_hash, file_path, mtime, _, _] => {
+                new_lines.push(format!("O   {}   {}   {}", file_hash, file_path, mtime));
+            }
+            // 3-field format: already in the desired committed form.
+            [_, file_hash, file_path, mtime] => {
+                new_lines.push(format!("O   {}   {}   {}", file_hash, file_path, mtime));
+            }
+            _ => {
+                // Should be unreachable. Keeps the erroneous line
+                new_lines.push(line.to_string());
+            }
+        }
+    }
+
+    let mut content = new_lines.join("\n");
+    if !content.is_empty() {
+        content.push('\n');
+    }
+    std::fs::write(staging_path, content).expect("Failed to write staging file");
 }

@@ -1,16 +1,19 @@
-use std::{
+﻿use std::{
     fs::OpenOptions,
     io::Write,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use crate::commands::hash_object;
+use crate::tools::normalize_path::normalize_path;
 
-
+//If file name doesn't exist: add it (3 fields)
+//If file name exists: check last modified time. If not matching -> calculate and check hash, if no match -> update (5 fields)
 pub fn run(file: String) {
     println!("Adding file: {}", file);
 
     let staging_path = ".kiv/staging";
+    let normalized_file = normalize_path(&file);
     let current_mtime = get_modified_time(&file);
     let current_mtime_str = current_mtime.to_string();
 
@@ -22,28 +25,54 @@ pub fn run(file: String) {
     let mut computed_hash: Option<String> = None;
 
     for line in existing.lines() {
-        let mut parts = line.splitn(3, "   ");
-        match (parts.next(), parts.next(), parts.next()) {
-            (Some(_old_hash), Some(file_name), Some(recorded_mtime)) if file_name == file => {
+        let parts: Vec<&str> = line.split("   ").collect();
+        match parts.as_slice() {
+            [_status, old_hash, file_name, recorded_mtime, maybe_old_version_hash, maybe_original_mtime]
+                if normalize_path(file_name) == normalized_file => {
                 found = true;
-                if recorded_mtime == current_mtime_str {
+                if *recorded_mtime == current_mtime_str {
                     new_lines.push(line.to_string());
                 } else {
                     let hash = computed_hash
                         .get_or_insert_with(|| hash_object::hash_file(&file, true))
                         .clone();
-                    new_lines.push(format!("{}   {}   {}", hash, file, current_mtime_str));
-                    changed = true;
+                    if hash == *old_hash {
+                        new_lines.push(line.to_string());
+                    } else {
+                        new_lines.push(format!(
+                            "M   {}   {}   {}   {}   {}",
+                            hash, normalized_file, current_mtime_str, maybe_old_version_hash, maybe_original_mtime
+                        ));
+                        changed = true;
+                    }
                 }
             }
-            // Backward compatibility for older staging entries without mtime.
-            (Some(_old_hash), Some(file_name), None) if file_name == file => {
+            [status, old_hash, file_name, recorded_mtime]
+                if normalize_path(file_name) == normalized_file => {
                 found = true;
-                let hash = computed_hash
-                    .get_or_insert_with(|| hash_object::hash_file(&file, true))
-                    .clone();
-                new_lines.push(format!("{}   {}   {}", hash, file, current_mtime_str));
-                changed = true;
+                if *recorded_mtime == current_mtime_str {
+                    new_lines.push(line.to_string());
+                } else {
+                    let hash = computed_hash
+                        .get_or_insert_with(|| hash_object::hash_file(&file, true))
+                        .clone();
+                    if hash == *old_hash {
+                        new_lines.push(line.to_string());
+                    } else {
+                        if status == &"N" {
+                            new_lines.push(format!(
+                                "N   {}   {}   {}",
+                                hash, normalized_file, current_mtime_str
+                            ));
+                        } else {
+                            new_lines.push(format!(
+                                "M   {}   {}   {}   {}   {}",
+                                hash, normalized_file, current_mtime_str, old_hash, recorded_mtime
+                            ));
+                        }
+                        changed = true;
+                    }
+                }
             }
             _ => new_lines.push(line.to_string()),
         }
@@ -58,9 +87,10 @@ pub fn run(file: String) {
             .create(true)
             .open(staging_path)
             .expect("failed to open staging file");
-        writeln!(staging, "{}   {}   {}", hash, file, current_mtime_str)
+        
+        writeln!(staging, "N   {}   {}   {}", hash, normalized_file, current_mtime_str)
             .expect("failed to write to staging");
-        println!("{} {} {}", hash, file, current_mtime_str);
+        println!("{} {} {}", hash, normalized_file, current_mtime_str);
         return;
     }
 

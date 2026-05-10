@@ -13,11 +13,14 @@ mod commands {
     pub mod diff;
     pub mod commit;
     pub mod add;
+    pub mod remove;
+    pub mod delete;
 }
 
 mod tools {
     pub mod hash_object;
     pub mod stage_to_tree;
+    pub mod normalize_path;
 }
 
 /// A simple git-like version control system written in Rust.
@@ -79,6 +82,12 @@ enum Command {
     },
     Add {
         file: String,
+    },
+    Remove {
+        file: String,
+    },
+    Delete {
+        file: String,
     }
 }
 
@@ -117,6 +126,12 @@ fn main() {
         }
         Command::Add { file } => {
             commands::add::run(file);
+        }
+        Command::Remove { file } => {
+            commands::remove::run(file);
+        }
+        Command::Delete { file } => {
+            commands::delete::run(file);
         }
     }
 
