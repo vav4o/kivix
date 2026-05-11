@@ -2,6 +2,8 @@ use imara_diff::{Algorithm, Diff, InternedInput};
 use crate::tools::hash_object;
 use std::io::Write;
 
+use crate::tools::normalize_format::normalize_line_endings;
+
 pub fn run(file1: String, file2: String) {
     println!("Running diff command...");
 
@@ -9,15 +11,17 @@ pub fn run(file1: String, file2: String) {
 
     let hash = hash_object::hash_object(rendered.clone(), "diff", true);
 
+    //std::fs::write("diff_output.txt", &rendered).expect("Failed to write diff output");
+
     println!("Diff:\n{}", String::from_utf8_lossy(&rendered));
     
     println!("Hash: {}", hash);
 
     //Under work
-    let attr = std::fs::metadata(format!(".kiv/objects/{}/{}", &hash[..2], &hash[2..]))
-        .expect("Failed to get file metadata").len();
+    // let attr = std::fs::metadata(format!(".kiv/objects/{}/{}", &hash[..2], &hash[2..]))
+    //     .expect("Failed to get file metadata").len();
 
-    println!("File size: {} bytes", attr);
+    // println!("File size: {} bytes", attr);
     //
 }
 //This method brute-forces the output from a Myers diff to produce the smallest possible 
@@ -25,8 +29,12 @@ pub fn run(file1: String, file2: String) {
 //Do not display it as it is not readable and also wrong(when displaying replacements)!
 //TODO: Move this to tools
 fn inner_diff(file1: String, file2: String) -> Vec<u8> {
-    let before = std::fs::read_to_string(&file1).expect("Failed to read before.txt");
-    let after = std::fs::read_to_string(&file2).expect("Failed to read after.txt");
+    let before = normalize_line_endings(
+        std::fs::read_to_string(&file1).expect("Failed to read before.txt"),
+    );
+    let after = normalize_line_endings(
+        std::fs::read_to_string(&file2).expect("Failed to read after.txt"),
+    );
 
     let input = InternedInput::new(before.as_str(), after.as_str());
     let mut diff = Diff::compute(Algorithm::Myers, &input);

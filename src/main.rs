@@ -15,12 +15,13 @@ mod commands {
     pub mod add;
     pub mod remove;
     pub mod delete;
+    pub mod apply_diff;
 }
 
 mod tools {
     pub mod hash_object;
     pub mod stage_to_tree;
-    pub mod normalize_path;
+    pub mod normalize_format;
 }
 
 /// A simple git-like version control system written in Rust.
@@ -88,7 +89,11 @@ enum Command {
     },
     Delete {
         file: String,
-    }
+    },
+    ApplyDiff {
+        diff_file: String,
+        target_file: String,
+    },
 }
 
 fn main() { 
@@ -132,6 +137,9 @@ fn main() {
         }
         Command::Delete { file } => {
             commands::delete::run(file);
+        }
+        Command::ApplyDiff { diff_file, target_file } => {
+            commands::apply_diff::run(diff_file, target_file);
         }
     }
 

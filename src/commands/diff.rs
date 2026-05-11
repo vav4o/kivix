@@ -2,6 +2,8 @@ use imara_diff::{
     Algorithm, Diff, InternedInput, Interner, Token, UnifiedDiffConfig, UnifiedDiffPrinter,
 };
 
+use crate::tools::normalize_format::normalize_line_endings;
+
 struct ColoredLineDiffPrinter<'a> {
     interner: &'a Interner<&'a str>,
     use_color: bool,
@@ -105,8 +107,12 @@ impl UnifiedDiffPrinter for ColoredLineDiffPrinter<'_> {
 pub fn run(file1: String, file2: String) {
     println!("Running diff command...");
 
-    let before = std::fs::read_to_string(&file1).expect("Failed to read before.txt");
-    let after = std::fs::read_to_string(&file2).expect("Failed to read after.txt");
+    let before = normalize_line_endings(
+        std::fs::read_to_string(&file1).expect("Failed to read before.txt"),
+    );
+    let after = normalize_line_endings(
+        std::fs::read_to_string(&file2).expect("Failed to read after.txt"),
+    );
 
     let input = InternedInput::new(before.as_str(), after.as_str());
     let mut diff = Diff::compute(Algorithm::Histogram, &input);

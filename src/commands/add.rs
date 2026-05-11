@@ -5,7 +5,7 @@
 };
 
 use crate::commands::hash_object;
-use crate::tools::normalize_path::normalize_path;
+use crate::tools::normalize_format::normalize_path;
 
 //If file name doesn't exist: add it (3 fields)
 //If file name exists: check last modified time. If not matching -> calculate and check hash, if no match -> update (5 fields)
@@ -52,7 +52,7 @@ pub fn run(file: String) {
                 found = true;
                 if *recorded_mtime == current_mtime_str {
                     new_lines.push(line.to_string());
-                } else {
+                } else { 
                     let hash = computed_hash
                         .get_or_insert_with(|| hash_object::hash_file(&file, true))
                         .clone();

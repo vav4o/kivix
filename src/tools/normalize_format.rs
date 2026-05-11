@@ -6,3 +6,7 @@ pub fn normalize_path(path: &str) -> String {
         normalized
     }
 }
+
+pub fn normalize_line_endings(text: String) -> String {
+    text.replace("\r\n", "\n").replace('\r', "\n")
+}

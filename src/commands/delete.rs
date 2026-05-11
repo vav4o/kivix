@@ -1,6 +1,6 @@
 use std::fs;
 
-use crate::tools::normalize_path::normalize_path;
+use crate::tools::normalize_format::normalize_path;
 
 pub fn run(file: String) {
     println!("Deleting file: {}", file);
