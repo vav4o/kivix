@@ -16,6 +16,7 @@ mod commands {
     pub mod remove;
     pub mod delete;
     pub mod apply_diff;
+    pub mod reverse_diff;
 }
 
 mod tools {
@@ -94,6 +95,9 @@ enum Command {
         diff_file: String,
         target_file: String,
     },
+    ReverseDiff {
+        diff_file: String,
+    },
 }
 
 fn main() { 
@@ -140,6 +144,9 @@ fn main() {
         }
         Command::ApplyDiff { diff_file, target_file } => {
             commands::apply_diff::run(diff_file, target_file);
+        }
+        Command::ReverseDiff { diff_file } => {
+            commands::reverse_diff::run(diff_file);
         }
     }
 
