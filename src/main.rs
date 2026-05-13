@@ -17,12 +17,16 @@ mod commands {
     pub mod delete;
     pub mod apply_diff;
     pub mod reverse_diff;
+    pub mod hybrid_distributor;
+    pub mod restore;
 }
 
 mod tools {
     pub mod hash_object;
     pub mod stage_to_tree;
     pub mod normalize_format;
+    pub mod decoding;
+    pub mod read_file;
 }
 
 /// A simple git-like version control system written in Rust.
@@ -73,14 +77,19 @@ enum Command {
         file1: String,
         file2: String,
     },
-    Stage,
+    Stage {
+        #[clap(short = 'f')]
+        full: bool,
+        #[clap(short = 't')]
+        time: bool,
+    },
     InnerDiff {
         file1: String,
         file2: String,
     },
     Commit {
         #[clap(short = 'm')]
-        message: String,
+        message: Option<String>,
     },
     Add {
         file: String,
@@ -98,6 +107,16 @@ enum Command {
     ReverseDiff {
         diff_file: String,
     },
+    HybridDistributor {
+        accumulated_diff_size: u64,
+        file_path: String,
+        object_hash: String,
+    },
+    Restore {
+        file_hash: String,
+        #[clap(short = 'n')]
+        name: Option<String>,
+    }
 }
 
 fn main() { 
@@ -124,8 +143,8 @@ fn main() {
         Command::Diff{file1, file2} => {
             commands::diff::run(file1, file2);
         }
-        Command::Stage => {
-            commands::stage::run();
+        Command::Stage { full, time } => {
+            commands::stage::run(full, time);
         }
         Command::InnerDiff { file1, file2 } => {
             commands::inner_diff::run(file1, file2);
@@ -147,6 +166,12 @@ fn main() {
         }
         Command::ReverseDiff { diff_file } => {
             commands::reverse_diff::run(diff_file);
+        }
+        Command::HybridDistributor { accumulated_diff_size, file_path , object_hash } => {
+            commands::hybrid_distributor::run(accumulated_diff_size, &file_path, &object_hash);
+        }
+        Command::Restore { file_hash, name } => {
+            commands::restore::run(file_hash, name);
         }
     }
 
