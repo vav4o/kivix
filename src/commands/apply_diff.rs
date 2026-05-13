@@ -1,11 +1,19 @@
 
 
-pub fn run(diff_file: String, target_file: String) {
+pub fn run(diff_file: String, target_file: String) -> String {
 	let diff_content = std::fs::read_to_string(&diff_file)
 		.expect("Failed to read diff file");
 	let target_content = std::fs::read_to_string(&target_file)
 		.expect("Failed to read target file");
 
+	apply_diff_content(&diff_content, &target_content)
+}
+
+pub fn run_from_strings(diff_content: &str, target_content: &str) -> String {
+	apply_diff_content(diff_content, target_content)
+}
+
+fn apply_diff_content(diff_content: &str, target_content: &str) -> String {
 	let had_trailing_newline = target_content.ends_with('\n');
 	let mut lines: Vec<String> = target_content
 		.lines()
@@ -83,7 +91,7 @@ pub fn run(diff_file: String, target_file: String) {
 		output.push('\n');
 	}
 
-	std::fs::write(&target_file, output).expect("Failed to write updated target file");
+	output
 }
 
 fn resolve_exact_line_index(

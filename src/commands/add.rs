@@ -5,6 +5,7 @@
 };
 
 use crate::commands::hash_object;
+use crate::commands::hybrid_distributor;
 use crate::tools::normalize_format::normalize_path;
 
 //If file name doesn't exist: add it (3 fields)
@@ -27,47 +28,55 @@ pub fn run(file: String) {
     for line in existing.lines() {
         let parts: Vec<&str> = line.split("   ").collect();
         match parts.as_slice() {
-            [_, old_hash, file_name, recorded_mtime, maybe_old_version_hash, maybe_original_mtime]
+            [_, _, old_hash, file_name, recorded_mtime, maybe_old_diff_size, maybe_old_version_hash, maybe_original_mtime]
                 if normalize_path(file_name) == normalized_file => {
                 found = true;
                 if *recorded_mtime == current_mtime_str {
                     new_lines.push(line.to_string());
                 } else {
-                    let hash = computed_hash
-                        .get_or_insert_with(|| hash_object::hash_file(&file, true))
-                        .clone();
+                    let (size, hash) = hybrid_distributor::run(
+                        maybe_old_diff_size.parse().unwrap_or(0), 
+                        file_name, 
+                        old_hash);
+                    // let hash = computed_hash
+                    //     .get_or_insert_with(|| hash_object::hash_file(&file, true))
+                    //     .clone();
                     if hash == *old_hash {
                         new_lines.push(line.to_string());
                     } else {
                         new_lines.push(format!(
-                            "M   {}   {}   {}   {}   {}",
-                            hash, normalized_file, current_mtime_str, maybe_old_version_hash, maybe_original_mtime
+                            "{}   M   {}   {}   {}   {}   {}",
+                            size, hash, normalized_file, current_mtime_str, maybe_old_version_hash, maybe_original_mtime
                         ));
                         changed = true;
                     }
                 }
             }
-            [status, old_hash, file_name, recorded_mtime]
+            [accumulated_diff_size, status, old_hash, file_name, recorded_mtime]
                 if normalize_path(file_name) == normalized_file => {
                 found = true;
                 if *recorded_mtime == current_mtime_str {
                     new_lines.push(line.to_string());
                 } else { 
-                    let hash = computed_hash
-                        .get_or_insert_with(|| hash_object::hash_file(&file, true))
-                        .clone();
+                    // let hash = computed_hash
+                    //     .get_or_insert_with(|| hash_object::hash_file(&file, true))
+                    //     .clone();
+                    let (size, hash) = hybrid_distributor::run(
+                        accumulated_diff_size.parse().unwrap_or(0), 
+                        file_name, 
+                        old_hash);
                     if hash == *old_hash {
                         new_lines.push(line.to_string());
                     } else {
                         if status == &"N" {
                             new_lines.push(format!(
-                                "N   {}   {}   {}",
+                                "0   N   {}   {}   {}",
                                 hash, normalized_file, current_mtime_str
                             ));
                         } else {
                             new_lines.push(format!(
-                                "M   {}   {}   {}   {}   {}",
-                                hash, normalized_file, current_mtime_str, old_hash, recorded_mtime
+                                "{}   M   {}   {}   {}   {}   {}   {}",
+                                size, hash, normalized_file, current_mtime_str, accumulated_diff_size, old_hash, recorded_mtime
                             ));
                         }
                         changed = true;
@@ -88,7 +97,7 @@ pub fn run(file: String) {
             .open(staging_path)
             .expect("failed to open staging file");
         
-        writeln!(staging, "N   {}   {}   {}", hash, normalized_file, current_mtime_str)
+        writeln!(staging, "0   N   {}   {}   {}", hash, normalized_file, current_mtime_str)
             .expect("failed to write to staging");
         println!("{} {} {}", hash, normalized_file, current_mtime_str);
         return;

@@ -22,7 +22,11 @@ pub fn create_tree(file_path: String, write: bool) -> String {
             continue;
         }
 
-        let mut parts = line.splitn(4, "   ");
+        let mut parts = line.splitn(5, "   ");
+        let _ = match parts.next() {
+            Some(value) if !value.is_empty() => value,
+            _ => continue,
+        };
         let _ = match parts.next() {
             Some(value) if !value.is_empty() => value,
             _ => continue,

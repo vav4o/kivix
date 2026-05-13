@@ -3,6 +3,7 @@ use crate::tools::hash_object;
 use std::io::Write;
 
 use crate::tools::normalize_format::normalize_line_endings;
+use crate::tools::decoding::decode_content;
 
 pub fn run(file1: String, file2: String) {
     println!("Running diff command...");
@@ -11,30 +12,27 @@ pub fn run(file1: String, file2: String) {
 
     let hash = hash_object::hash_object(rendered.clone(), "diff", true);
 
-    //std::fs::write("diff_output.txt", &rendered).expect("Failed to write diff output");
+    std::fs::write("diff_output.txt", &rendered).expect("Failed to write diff output");
 
     println!("Diff:\n{}", String::from_utf8_lossy(&rendered));
     
     println!("Hash: {}", hash);
 
     //Under work
-    // let attr = std::fs::metadata(format!(".kiv/objects/{}/{}", &hash[..2], &hash[2..]))
-    //     .expect("Failed to get file metadata").len();
+    let attr = std::fs::metadata(format!(".kiv/objects/{}/{}", &hash[..2], &hash[2..]))
+        .expect("Failed to get file metadata").len();
 
-    // println!("File size: {} bytes", attr);
+    println!("File size: {} bytes", attr);
     //
 }
+
 //This method brute-forces the output from a Myers diff to produce the smallest possible 
 //diff in order to optimize memory storage and reverse-diffing. 
 //Do not display it as it is not readable and also wrong(when displaying replacements)!
-//TODO: Move this to tools
-fn inner_diff(file1: String, file2: String) -> Vec<u8> {
-    let before = normalize_line_endings(
-        std::fs::read_to_string(&file1).expect("Failed to read before.txt"),
-    );
-    let after = normalize_line_endings(
-        std::fs::read_to_string(&file2).expect("Failed to read after.txt"),
-    );
+//Computes diff from file contents directly instead of reading from disk.
+pub fn compute_diff(content1: String, content2: String) -> Vec<u8> {
+    let before = normalize_line_endings(content1);
+    let after = normalize_line_endings(content2);
 
     let input = InternedInput::new(before.as_str(), after.as_str());
     let mut diff = Diff::compute(Algorithm::Myers, &input);
@@ -58,8 +56,10 @@ fn inner_diff(file1: String, file2: String) -> Vec<u8> {
             let line_number = after_start + offset + 1;
             let old_line = before_lines[before_start + offset];
             let new_line = after_lines[after_start + offset];
-            writeln!(&mut rendered, "{},~,{},{}", line_number, old_line, new_line)
-                .expect("writing to buffer failed");
+            if old_line != new_line {
+                writeln!(&mut rendered, "{},~,{},{}", line_number, old_line, new_line)
+                    .expect("writing to buffer failed");
+            }
         }
 
         for line_index in before_start + replaced_len..before_end {
@@ -74,6 +74,13 @@ fn inner_diff(file1: String, file2: String) -> Vec<u8> {
     }
 
     rendered
+}
+
+fn inner_diff(file1: String, file2: String) -> Vec<u8> {
+    let content1 = decode_content(std::fs::read(&file1).expect("Failed to read file"));
+    let content2 = decode_content(std::fs::read(&file2).expect("Failed to read file"));
+    
+    compute_diff(content1, content2)
 }
 
 

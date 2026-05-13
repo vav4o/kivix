@@ -3,7 +3,11 @@
 use crate::commands::commit_tree;
 use crate::tools::stage_to_tree;
 
-pub fn run(message: String) {
+pub fn run(message: Option<String>) {
+    let message = message
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "No commit message".to_string());
+
     println!("Committing with message: {}", message);
 
     let branch = std::fs::read_to_string(".kiv/HEAD")
@@ -51,11 +55,11 @@ fn sync_staging_old_hashes(staging_path: &str) {
 
         let parts: Vec<&str> = line.split("   ").collect();
         match parts.as_slice() {
-            [_, file_hash, file_path, mtime, _, _] => {
-                new_lines.push(format!("O   {}   {}   {}", file_hash, file_path, mtime));
+            [accumulated_diff_size, _, file_hash, file_path, mtime, _, _, _] => {
+                new_lines.push(format!("{}   O   {}   {}   {}", accumulated_diff_size, file_hash, file_path, mtime));
             }
-            [_, file_hash, file_path, mtime] => {
-                new_lines.push(format!("O   {}   {}   {}", file_hash, file_path, mtime));
+            [accumulated_diff_size, _, file_hash, file_path, mtime] => {
+                new_lines.push(format!("{}   O   {}   {}   {}", accumulated_diff_size, file_hash, file_path, mtime));
             }
             _ => {
                 // Should be unreachable. Keeps the erroneous line
