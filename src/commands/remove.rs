@@ -19,17 +19,17 @@ pub fn run(file: String) {
 
         let parts: Vec<&str> = line.split("   ").collect();
         match parts.as_slice() {
-            [_status, _file_hash, file_name, _mtime, old_version_hash, original_mtime]
+            [_, _, _, file_name, _, old_version_diff_size, old_version_hash, original_mtime]
                 if normalize_path(file_name) == normalized_file => {
                     found = true;
 
                     new_lines.push(format!(
-                        "O   {}   {}   {}",
-                        old_version_hash, file_name, original_mtime
+                        "{}   O   {}   {}   {}",
+                        old_version_diff_size, old_version_hash, file_name, original_mtime
                     ));
                     println!("reverted {} (old hash: {})", file, old_version_hash);
                 }
-            ["N", _file_hash, file_name, _mtime] 
+            [_, "N", _, file_name, _] 
                 if normalize_path(file_name) == normalized_file => {
                     found = true;
                     
