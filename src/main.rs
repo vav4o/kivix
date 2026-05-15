@@ -21,6 +21,7 @@ mod commands {
     pub mod restore;
     pub mod set_name;
     pub mod set_diff;
+    pub mod current;
 }
 
 mod tools {
@@ -110,6 +111,7 @@ enum Command {
         #[clap(short = 's')]         max_size: Option<u64>,
         #[clap(short = 'P')]         max_size_p: Option<u64>,
     },
+    Current,
 }
 
 fn main() { 
@@ -171,6 +173,9 @@ fn main() {
         }
         Command::SetDiff { diff_size_p, max_size, max_size_p } => {
             commands::set_diff::run(diff_size_p, max_size, max_size_p);
+        }
+        Command::Current => {
+            commands::current::run();
         }
     }
 
