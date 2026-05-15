@@ -1,5 +1,16 @@
-use crate::tools::hash_object::hash_object;
+use serde::{Deserialize, Serialize};
 use chrono::Local;
+use crate::tools::hash_object::hash_object;
+use crate::tools::config_tools::LoadConfig;
+
+#[derive(Serialize, Deserialize)]
+struct NameConfig {
+    name: String,
+}
+
+impl LoadConfig for NameConfig {}
+
+
 
 pub fn run(write: bool, tree_hash: String, parent_hash: Option<String>, message: String) -> String{
     println!("Committing tree...");
@@ -12,11 +23,13 @@ pub fn run(write: bool, tree_hash: String, parent_hash: Option<String>, message:
 pub fn hash_commit(tree_sha: String, parent: String, message: String, write: bool) -> String {
     let parent: String = format!("parent {}", parent);
 
+    let name = NameConfig::load_config().name;
+
     let now = Local::now();
     let timestamp = format!("{}", now.format("%Y-%m-%d %H:%M:%S"));
     let timezone = now.format("%z");
 
-    let author: String = format!("author My Name {} {}", timestamp, timezone);
+    let author: String = format!("author {} {} {}", name, timestamp, timezone);
 
     let commit = format!(
         "tree {}\n{}\n{}\n\n{}\n",

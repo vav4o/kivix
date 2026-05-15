@@ -1,4 +1,6 @@
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
+use serde::{Deserialize, Serialize};
+use crate::tools::config_tools::LoadConfig;
 use crate::commands::inner_diff;
 use crate::commands::hash_object;
 use crate::tools::hash_object as hash_object_tool;
@@ -6,9 +8,14 @@ use crate::tools::decoding::decode_content;
 use crate::tools::read_file;
 use std::io::Write;
 
-const DIFF_SIZE_THRESHOLD_PERCENTAGE: u64 = 30; // 30% of the file size
-const MAX_ACCUMULATED_DIFF_SIZE: u64 = 10 * 1024 * 1024; // 10 MB
-const MAX_ACCUMULATED_DIFF_SIZE_PERCENTAGE: u64 = 50; // 50% of the original file's size
+#[derive(Serialize, Deserialize)]
+struct DiffConfig {
+    diff_size_threshold_percentage: u64,
+    max_accumulated_diff_size: u64,
+    max_accumulated_diff_size_percentage: u64,
+}
+
+impl LoadConfig for DiffConfig {}
 
 //This function is way too big, however breaking it down would require decoding 
 //the hashed file again which is inefficient
@@ -61,22 +68,24 @@ pub fn run(accumulated_diff_size: u64, file_path: &str, parent_hash: &str) -> (S
 
     let total_size = hash_object_header_size + compressed_rendered_size;
     
+    let config = DiffConfig::load_config();
+
     //println!("Diff:\n{}", String::from_utf8_lossy(&rendered));
     
-    if total_size > file_size * DIFF_SIZE_THRESHOLD_PERCENTAGE / 100||
-    total_size > MAX_ACCUMULATED_DIFF_SIZE ||
-    total_size + accumulated_diff_size > file_size * MAX_ACCUMULATED_DIFF_SIZE_PERCENTAGE / 100{
-        println!("Output: {}, {}, file hash", total_size, file_size * DIFF_SIZE_THRESHOLD_PERCENTAGE / 100);
+    if total_size > file_size * config.diff_size_threshold_percentage / 100||
+    total_size > config.max_accumulated_diff_size ||
+    total_size + accumulated_diff_size > file_size * config.max_accumulated_diff_size_percentage / 100{
+        println!("Output: {}, {}, file hash", total_size, file_size * config.diff_size_threshold_percentage / 100);
         return ("0".to_string(), hash_object::hash_file(&file_path, true));
     }
     
     let hash = hash_object_tool::hash_diff(rendered.clone(), parent_hash, true);
-    println!("Output: {}, {}, diffff", total_size + accumulated_diff_size, file_size * DIFF_SIZE_THRESHOLD_PERCENTAGE / 100);
+    println!("Output: {}, {}, diffff", total_size + accumulated_diff_size, file_size * config.diff_size_threshold_percentage / 100);
     return ((total_size + accumulated_diff_size).to_string(), hash);
 
     
 //     println!("Total size (header + compressed diff): {} bytes", hash_object_header_size + compressed_rendered_size);
 //     println!("Total accumulated diff size: {} bytes", accumulated_diff_size + hash_object_header_size + compressed_rendered_size);
-//     println!("File size: {} bytes", file_size / 100 * DIFF_SIZE_THRESHOLD_PERCENTAGE);
+//     println!("File size: {} bytes", file_size / 100 * config.diff_size_threshold_percentage);
 
 }

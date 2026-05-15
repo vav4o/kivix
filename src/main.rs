@@ -19,6 +19,8 @@ mod commands {
     pub mod reverse_diff;
     pub mod hybrid_distributor;
     pub mod restore;
+    pub mod set_name;
+    pub mod set_diff;
 }
 
 mod tools {
@@ -27,9 +29,9 @@ mod tools {
     pub mod normalize_format;
     pub mod decoding;
     pub mod read_file;
+    pub mod config_tools;
 }
 
-/// A simple git-like version control system written in Rust.
 #[derive(clap::Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -37,86 +39,77 @@ struct Args {
     command: Command,
 }
 
-/// The available subcommands for the git-like system.
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Initialize a new, empty repository.
     Init,
     HashObject {
-        #[clap(short = 'w')]
-        write: bool,
-
-        file: String,
+        #[clap(short = 'w')]        write: bool,
+                                    file: String,
     },
     CatFile {
-        #[clap(short = 'p')]
-        pretty_print: bool,
-
-        object_hash: String,
+        #[clap(short = 'p')]        pretty_print: bool,
+                                    object_hash: String,
     },
     WriteTree {
-        #[clap(short = 'w')]
-        write: bool,
+        #[clap(short = 'w')]        write: bool,
     },
     LsTree {
-        object_hash: String,
+                                    object_hash: String,
     },
     CommitTree {
-        #[clap(short = 'w')]
-        write: bool,
-
-        tree_hash: String,
-
-        #[clap(short = 'p')]
-        parent_hash: Option<String>,
-
-        #[clap(short = 'm')]
-        message: String,
+        #[clap(short = 'w')]        write: bool,
+                                    tree_hash: String,
+        #[clap(short = 'p')]        parent_hash: Option<String>,
+        #[clap(short = 'm')]        message: String,
     },
     Diff {
-        file1: String,
-        file2: String,
+                                    file1: String,
+                                    file2: String,
     },
     Stage {
-        #[clap(short = 'f')]
-        full: bool,
-        #[clap(short = 't')]
-        time: bool,
+        #[clap(short = 'f')]        full: bool,
+        #[clap(short = 't')]        time: bool,
     },
     InnerDiff {
-        file1: String,
-        file2: String,
+                                    file1: String,
+                                    file2: String,
     },
     Commit {
-        #[clap(short = 'm')]
-        message: Option<String>,
+        #[clap(short = 'm')]        message: Option<String>,
     },
     Add {
-        file: String,
+                                    file: String,
     },
     Remove {
-        file: String,
+                                    file: String,
     },
     Delete {
-        file: String,
+                                    file: String,
     },
     ApplyDiff {
-        diff_file: String,
-        target_file: String,
+                                    diff_file: String,
+                                    target_file: String,
     },
     ReverseDiff {
-        diff_file: String,
+                                    diff_file: String,
     },
     HybridDistributor {
-        accumulated_diff_size: u64,
-        file_path: String,
-        object_hash: String,
+                                    accumulated_diff_size: u64,
+                                    file_path: String,
+                                    object_hash: String,
     },
     Restore {
-        file_hash: String,
-        #[clap(short = 'n')]
-        name: Option<String>,
-    }
+                                    file_hash: String,
+        #[clap(short = 'n')]        name: Option<String>,
+    },
+    SetName {
+                                    name: String,
+    },
+    SetDiff {
+        #[clap(short = 'p')]         diff_size_p: Option<u64>,
+        #[clap(short = 's')]         max_size: Option<u64>,
+        #[clap(short = 'P')]         max_size_p: Option<u64>,
+    },
 }
 
 fn main() { 
@@ -172,6 +165,12 @@ fn main() {
         }
         Command::Restore { file_hash, name } => {
             commands::restore::run(file_hash, name);
+        }
+        Command::SetName { name } => {
+            commands::set_name::run(name);
+        }
+        Command::SetDiff { diff_size_p, max_size, max_size_p } => {
+            commands::set_diff::run(diff_size_p, max_size, max_size_p);
         }
     }
 
