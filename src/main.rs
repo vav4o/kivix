@@ -22,6 +22,7 @@ mod commands {
     pub mod set_name;
     pub mod set_diff;
     pub mod current;
+    pub mod create_branch;
 }
 
 mod tools {
@@ -107,11 +108,15 @@ enum Command {
                                     name: String,
     },
     SetDiff {
-        #[clap(short = 'p')]         diff_size_p: Option<u64>,
-        #[clap(short = 's')]         max_size: Option<u64>,
-        #[clap(short = 'P')]         max_size_p: Option<u64>,
+        #[clap(short = 'p')]        diff_size_p: Option<u64>,
+        #[clap(short = 's')]        max_size: Option<u64>,
+        #[clap(short = 'P')]        max_size_p: Option<u64>,
     },
     Current,
+    CreateBranch {
+                                    branch_name: String,
+                                    commit_hash: Option<String>,
+    }
 }
 
 fn main() { 
@@ -176,6 +181,9 @@ fn main() {
         }
         Command::Current => {
             commands::current::run();
+        }
+        Command::CreateBranch { branch_name, commit_hash } => {
+            commands::create_branch::run(&branch_name, commit_hash);
         }
     }
 
