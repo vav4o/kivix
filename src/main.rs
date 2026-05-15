@@ -25,6 +25,7 @@ mod commands {
     pub mod create_branch;
     pub mod branches;
     pub mod set_branch;
+    pub mod set_commit;
 }
 
 mod tools {
@@ -125,6 +126,9 @@ enum Command {
     SetBranch {
                                     branch_name: String,
     },
+    SetCommit {
+                                    commit_hash: String,
+    }
 }
 
 fn main() { 
@@ -198,6 +202,9 @@ fn main() {
         }
         Command::SetBranch { branch_name } => {
             commands::set_branch::run(&branch_name);
+        }
+        Command::SetCommit { commit_hash } => {
+            commands::set_commit::run(&commit_hash);
         }
     }
 
