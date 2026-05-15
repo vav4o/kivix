@@ -26,6 +26,7 @@ mod commands {
     pub mod branches;
     pub mod set_branch;
     pub mod set_commit;
+    pub mod merge;
 }
 
 mod tools {
@@ -35,6 +36,7 @@ mod tools {
     pub mod decoding;
     pub mod read_file;
     pub mod config_tools;
+    pub mod merging;
 }
 
 #[derive(clap::Parser, Debug)]
@@ -128,6 +130,11 @@ enum Command {
     },
     SetCommit {
                                     commit_hash: String,
+    },
+    Merge {
+               base: String,
+               my: String,
+             their: String,
     }
 }
 
@@ -205,6 +212,9 @@ fn main() {
         }
         Command::SetCommit { commit_hash } => {
             commands::set_commit::run(&commit_hash);
+        }
+        Command::Merge { base, my, their } => {
+            commands::merge::run(base, my, their);
         }
     }
 
