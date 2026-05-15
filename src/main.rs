@@ -23,6 +23,7 @@ mod commands {
     pub mod set_diff;
     pub mod current;
     pub mod create_branch;
+    pub mod branches;
 }
 
 mod tools {
@@ -116,7 +117,10 @@ enum Command {
     CreateBranch {
                                     branch_name: String,
                                     commit_hash: Option<String>,
-    }
+    },
+    Branches {
+        #[clap(short = 'c')]        commits: bool,
+    },
 }
 
 fn main() { 
@@ -184,6 +188,9 @@ fn main() {
         }
         Command::CreateBranch { branch_name, commit_hash } => {
             commands::create_branch::run(&branch_name, commit_hash);
+        }
+        Command::Branches { commits }=> {
+            commands::branches::run(commits);
         }
     }
 
