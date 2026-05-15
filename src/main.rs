@@ -24,6 +24,7 @@ mod commands {
     pub mod current;
     pub mod create_branch;
     pub mod branches;
+    pub mod set_branch;
 }
 
 mod tools {
@@ -121,6 +122,9 @@ enum Command {
     Branches {
         #[clap(short = 'c')]        commits: bool,
     },
+    SetBranch {
+                                    branch_name: String,
+    },
 }
 
 fn main() { 
@@ -191,6 +195,9 @@ fn main() {
         }
         Command::Branches { commits }=> {
             commands::branches::run(commits);
+        }
+        Command::SetBranch { branch_name } => {
+            commands::set_branch::run(&branch_name);
         }
     }
 
